@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LoL API Status</title>
+    <style>
+        .healthy { color: green; }
+        .maintenance { color: orange; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>League of Legends API Status</h1>
+    <div id="status">
+        <p>Loading server status...</p>
+    </div>
+    
+    <script>
+        async function checkStatus() {
+            try {
+                const response = await fetch('http://localhost:3000/status');
+                const data = await response.json();
+                
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = `
+                    <h2 class="${data.maintenance ? 'maintenance' : 'healthy'}">
+                        BR Server: ${data.maintenance ? '⚠️ Under Maintenance' : '✅ Operational'}
+                    </h2>
+                    ${data.incidents.length > 0 ? `
+                        <h3>Active Issues:</h3>
+                        <ul>
+                            ${data.incidents.map(issue => `<li>${issue}</li>`).join('')}
+                        </ul>
+                    ` : '<p>No active incidents reported</p>'}
+                    <p>Last checked: ${new Date().toLocaleTimeString()}</p>
+                `;
+                
+            } catch (error) {
+                document.getElementById('status').innerHTML = `
+                    <h2 class="error">❌ Failed to check status</h2>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        // Check immediately and every 5 minutes
+        checkStatus();
+        setInterval(checkStatus, 300000); 
+    </script>
+</body>
+</html>

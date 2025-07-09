@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Visualizador de Maestrias do League of Legends">
+  <title>Maestrias LoL | Veja seus campeões mais jogados</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header>
+    <h1>Visualize suas Maestrias no LoL</h1>
+    <p>Digite seu nickname no formato <strong>Nick#Tag</strong> para ver seus 10 campeões com mais pontos de maestria.</p>
+  </header>
+
+  <div class="search-container">
+    <input 
+      type="text" 
+      id="nickname" 
+      placeholder="Ex: Doublelift#NA1" 
+      aria-label="Digite seu nickname do LoL"
+    />
+    <button onclick="buscarMaestrias()" id="searchBtn">Buscar</button>
+  </div>
+
+  <div id="loader" class="loader" style="display: none;"></div>
+  <div id="error" class="error-message"></div>
+
+  <div class="chart-container">
+    <canvas id="grafico" width="600" height="400"></canvas>
+  </div>
+
+  <div id="championGrid" class="champion-grid"></div>
+
+  <script>
+    let myChart = null;
+
+    async function buscarMaestrias() {
+      const nickname = document.getElementById('nickname').value.trim();
+      const errorElement = document.getElementById('error');
+      errorElement.textContent = '';
+      
+      // Validação básica
+      if (!nickname.includes('#')) {
+        errorElement.textContent = 'Formato incorreto! Use Nick#Tag (ex: Doublelift#NA1)';
+        return;
+      }
+
+      // Mostra loader
+      const loader = document.getElementById('loader');
+      const searchBtn = document.getElementById('searchBtn');
+      loader.style.display = 'block';
+      searchBtn.disabled = true;
+
+      try {
+        const nickCodificado = encodeURIComponent(nickname);
+        const res = await fetch(`http://localhost:3000/maestrias/${nickCodificado}`);
+        
+        if (!res.ok) {
+          throw new Error(res.status === 404 ? 'Jogador não encontrado' : 'Erro na API');
+        }
+
+        const data = await res.json();
+        
+        // Atualiza gráfico
+        atualizarGrafico(data);
+        
+        // Atualiza grid de campeões
+        atualizarGridCampeoes(data);
+        
+      } catch (err) {
+        console.error('Erro:', err);
+        errorElement.textContent = err.message || 'Erro ao buscar dados';
+        
+        if (myChart) {
+          myChart.destroy();
+        }
+        document.getElementById('championGrid').innerHTML = '';
+      } finally {
+        loader.style.display = 'none';
+        searchBtn.disabled = false;
+      }
+    }
+
+    function atualizarGrafico(data) {
+      const ctx = document.getElementById('grafico').getContext('2d');
+      const nomes = data.map(d => d.nome);
+      const pontos = data.map(d => d.pontos);
+
+      if (myChart) {
+        myChart.destroy();
+      }
+
+      myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: nomes,
+          datasets: [{
+            label: 'Pontos de Maestria',
+            data: pontos,
+            backgroundColor: 'rgba(28, 135, 201, 0.7)',
+            borderColor: 'rgba(28, 135, 201, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#ffffff'
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  return ` ${context.parsed.y.toLocaleString()} pontos`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#ffffff'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#ffffff'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function atualizarGridCampeoes(data) {
+      const grid = document.getElementById('championGrid');
+      grid.innerHTML = '';
+
+      data.forEach(champ => {
+        const card = document.createElement('div');
+        card.className = 'champion-card';
+        card.innerHTML = `
+          <h3>${champ.nome}</h3>
+          <p>${champ.pontos.toLocaleString()} pontos</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Permitir busca com Enter
+    document.getElementById('nickname').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') buscarMaestrias();
+    });
+  </script>
+</body>
+</html>
