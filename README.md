@@ -33,7 +33,7 @@ Nunca commit seu arquivo `config.js` ou compartilhe sua API key!
 
 ## 📜 Legal
 Este projeto não é afiliado à Riot Games e utiliza a API conforme os 
-[Termos de Desenvolvedor](https://developer.riotgames.com/policies/terms).
+[Termos de Desenvolvedor](https://support-developer.riotgames.com/hc/en-us/articles/22698591841939-General-Policies).
 
 ## 📝 Licença
 MIT
