@@ -27,6 +27,10 @@ RIOT_API_KEY=sua_chave_aqui
 ## ⚠️ Segurança
 Nunca commit seu arquivo `config.js` ou compartilhe sua API key!
 
+⚠️ **Limitações da API**:
+- Máximo de 100 requisições a cada 2 minutos
+- Chaves de desenvolvimento expiram após 24 horas
+
 ## 📜 Legal
 Este projeto não é afiliado à Riot Games e utiliza a API conforme os 
 [Termos de Desenvolvedor](https://developer.riotgames.com/policies/terms).
